@@ -2,8 +2,13 @@ import Head from "next/head";
 import type { NextPage } from "next";
 import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 
+import { api } from "~/utils/api";
+
 const Home: NextPage = () => {
+  const { data } = api.posts.getAll.useQuery();
   const user = useUser();
+
+  console.log(data);
 
   return (
     <>
@@ -14,6 +19,12 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
         {user.isSignedIn ? <SignOutButton /> : <SignInButton />}
+
+        <ul>
+          {data?.map((post) => (
+            <li key={post.id}>{post.content}</li>
+          ))}
+        </ul>
       </main>
     </>
   );
