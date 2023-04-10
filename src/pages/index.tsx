@@ -3,8 +3,15 @@ import Head from "next/head";
 import Image from "next/image";
 import { type NextPage } from "next";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/nextjs";
+import {
+  useUser,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from "@clerk/nextjs";
 
+import { Loader } from "~/components/loader";
 import { api, type RouterOutputs } from "~/utils/api";
 
 dayjs.extend(relativeTime);
@@ -26,8 +33,6 @@ const CreatePost = () => {
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 const Post = (props: PostWithUser) => {
   const { post, author } = props;
-
-  console.log(post);
 
   return (
     <li className="flex gap-5 border-b border-slate-400 p-5">
@@ -53,12 +58,28 @@ const Post = (props: PostWithUser) => {
   );
 };
 
+const Feed = () => {
+  const { isLoading, data, isError } = api.posts.getAll.useQuery();
+
+  if (isLoading) return <Loader size={90} className="grow" />;
+
+  if (isError) return <div>Something went wrong</div>;
+
+  return (
+    <ul>
+      {data?.map((data) => (
+        <Post key={data.post.id} {...data} />
+      ))}
+    </ul>
+  );
+};
+
 const Home: NextPage = () => {
-  const { data, isLoading } = api.posts.getAll.useQuery();
+  const { isLoaded } = useUser();
 
-  if (isLoading) return <div>Loading...</div>;
+  api.posts.getAll.useQuery();
 
-  if (!data) return <div>Something went wrong</div>;
+  if (!isLoaded) return null;
 
   return (
     <>
@@ -68,7 +89,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex h-screen justify-center">
-        <div className="w-full border-x border-slate-200 md:max-w-2xl">
+        <div className="flex w-full flex-col border-x border-slate-200 md:max-w-2xl">
           <header className="flex border-b border-slate-200 p-4">
             <SignedIn>
               <CreatePost />
@@ -83,11 +104,7 @@ const Home: NextPage = () => {
             </SignedOut>
           </header>
 
-          <ul>
-            {data?.map((data) => (
-              <Post key={data.post.id} {...data} />
-            ))}
-          </ul>
+          <Feed />
         </div>
       </main>
     </>
