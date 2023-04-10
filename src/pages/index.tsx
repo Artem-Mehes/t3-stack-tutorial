@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import Head from "next/head";
 import Image from "next/image";
 import { type NextPage } from "next";
+import { type FormEvent, useState } from "react";
 import relativeTime from "dayjs/plugin/relativeTime";
 import {
   useUser,
@@ -17,16 +18,42 @@ import { api, type RouterOutputs } from "~/utils/api";
 dayjs.extend(relativeTime);
 
 const CreatePost = () => {
+  const ctx = api.useContext();
+
+  const [content, setContent] = useState("");
+
+  const { mutate, isLoading } = api.posts.create.useMutation({
+    onSuccess: () => {
+      setContent("");
+      void ctx.posts.getAll.invalidate();
+    },
+  });
+
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    mutate({ content });
+  };
+
   return (
-    <div className="flex w-full gap-5">
+    <form className="flex w-full gap-5" onSubmit={onSubmit}>
       <UserButton />
 
       <input
         type="text"
+        value={content}
+        disabled={isLoading}
         placeholder="Type some emojis"
+        onChange={(e) => setContent(e.target.value)}
         className="grow bg-transparent p-1 outline-none"
       />
-    </div>
+
+      <input
+        value="Send"
+        type="submit"
+        disabled={isLoading || !content}
+        className="cursor-pointer rounded bg-blue-500 py-2 px-4 font-bold text-white hover:bg-blue-700"
+      />
+    </form>
   );
 };
 
