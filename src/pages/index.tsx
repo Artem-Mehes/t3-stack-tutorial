@@ -1,7 +1,4 @@
 import dayjs from "dayjs";
-import Head from "next/head";
-import Link from "next/link";
-import Image from "next/image";
 import toast from "react-hot-toast";
 import { type NextPage } from "next";
 import { type FormEvent, useState } from "react";
@@ -14,9 +11,10 @@ import {
   SignInButton,
 } from "@clerk/nextjs";
 
-import { api, type RouterOutputs } from "~/utils/api";
-import { Loader, LoaderIcon } from "~/components/loader";
+import { api } from "~/utils/api";
+import { Post } from "~/components/post";
 import { Layout } from "~/components/layout";
+import { Loader, LoaderIcon } from "~/components/loader";
 
 dayjs.extend(relativeTime);
 
@@ -69,37 +67,6 @@ const CreatePost = () => {
         />
       )}
     </form>
-  );
-};
-
-type PostWithUser = RouterOutputs["posts"]["getAll"][number];
-const Post = (props: PostWithUser) => {
-  const { post, author } = props;
-
-  return (
-    <li className="flex gap-5 border-b border-slate-400 p-5">
-      <div className="flex flex-col items-center">
-        <Image
-          width="56"
-          height="56"
-          alt={author.username}
-          src={author.profileImageUrl}
-          className="h-14 w-14 rounded-full"
-        />
-      </div>
-
-      <div className="flex flex-col">
-        <div className="flex items-center">
-          <span className="text-slate-500">
-            <Link href={`/${author.username}`}>@{author.username}</Link> ·{" "}
-            <Link href={`/post/${post.id}`}>
-              {dayjs(post.createdAt).fromNow()}
-            </Link>
-          </span>
-        </div>
-        <div className="text-lg">{post.content}</div>
-      </div>
-    </li>
   );
 };
 

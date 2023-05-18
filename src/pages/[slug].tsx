@@ -10,8 +10,26 @@ import type {
 
 import { api } from "~/utils/api";
 import { prisma } from "~/server/db";
+import { Post } from "~/components/post";
 import { Layout } from "~/components/layout";
+import { Loader } from "~/components/loader";
 import { appRouter } from "~/server/api/root";
+
+const ProfileFeed = ({ userId }: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({ userId });
+
+  if (isLoading) return <Loader size={90} className="grow" />;
+
+  if (!data || data.length === 0) return <div>User has not posted</div>;
+
+  return (
+    <ul className="flex flex-col overflow-auto">
+      {data.map((fullPost) => (
+        <Post key={fullPost.post.id} {...fullPost} />
+      ))}
+    </ul>
+  );
+};
 
 const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   username,
@@ -42,6 +60,8 @@ const Profile: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
         <div className="border-b border-slate-400 p-4 text-2xl font-bold ">
           @{data.username}
         </div>
+
+        <ProfileFeed userId={data.id} />
       </Layout>
     </>
   );
